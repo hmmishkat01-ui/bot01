@@ -5,12 +5,12 @@ from google.oauth2.service_account import Credentials
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
-BOT_TOKEN = "আপনার_BOT_TOKEN_এখানে_দিন"
-ADMIN_ID = 123456789
-WHATSAPP_LINK = "https://wa.me/8801XXXXXXXXX"
-BKASH_NUMBER = "01XXXXXXXXX"
-GROUP_LINK = "https://t.me/your_group_link"
-SHEET_ID = "আপনার_GOOGLE_SHEET_ID_এখানে_দিন"
+BOT_TOKEN = "8725525204:AAFcY4eYmGaba9iHen64pi5mUZLllTRW3pE"
+ADMIN_ID = 8173902419
+WHATSAPP_LINK = "https://wa.me/8801914726066"
+BKASH_NUMBER = "01711974357"
+GROUP_LINK = "https://chat.whatsapp.com/GKpKHEXkzh6CA88k9cjX1f"
+SHEET_ID = "https://docs.google.com/spreadsheets/d/1DnrcPJITNg9qhnBqRKEHbCeIPimIbOPo-AhGA-v6Ayo/edit?usp=sharing"
 
 scopes = ["https://www.googleapis.com/auth/spreadsheets"]
 creds = Credentials.from_service_account_file("service_account.json", scopes=scopes)
