@@ -1,12 +1,21 @@
+from datetime import datetime
+import gspread
+from google.oauth2.service_account import Credentials
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
-BOT_TOKEN = "8725525204:AAFcY4eYmGaba9iHen64pi5mUZLllTRW3pE"
+BOT_TOKEN = "আপনার_BOT_TOKEN_এখানে_দিন"
+ADMIN_ID = 123456789
+WHATSAPP_LINK = "https://wa.me/8801XXXXXXXXX"
+BKASH_NUMBER = "01XXXXXXXXX"
+GROUP_LINK = "https://t.me/your_group_link"
+SHEET_ID = "আপনার_GOOGLE_SHEET_ID_এখানে_দিন"
 
-ADMIN_ID = 8173902419
-WHATSAPP_LINK = "https://wa.me/8801676631455"
-BKASH_NUMBER = "01711974357"
-GROUP_LINK = "https://chat.whatsapp.com/GKpKHEXkzh6CA88k9cjX1f"
+scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+creds = Credentials.from_service_account_file("service_account.json", scopes=scopes)
+client = gspread.authorize(creds)
+sheet = client.open_by_key(SHEET_ID).sheet1
 
 user_data = {}
 
@@ -19,8 +28,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "আসসালামু আলাইকুম 👋\n\n"
         "🎓 Sky IT Premium Admission Bot-এ আপনাকে স্বাগতম।\n\n"
-        "Admission নিতে নিচের বাটনে চাপ দিন।\n"
-        "কোনো সমস্যা হলে Help / WhatsApp চাপুন।",
+        "Admission নিতে নিচের বাটনে চাপ দিন।",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
@@ -35,13 +43,13 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == "pay_bkash":
         user_data[user_id]["payment_method"] = "bKash"
-        user_data[user_id]["step"] = "trxid"
+        user_data[user_id]["step"] = "screenshot"
 
         await query.message.reply_text(
             "💳 bKash Payment Instruction\n\n"
             f"📱 bKash Personal Number: {BKASH_NUMBER}\n\n"
-            "এই নাম্বারে টাকা Send Money করুন।\n"
-            "Payment করার পর Transaction ID লিখুন।"
+            "এই নাম্বারে টাকা Send Money করুন।\n\n"
+            "Payment করার পর শুধু screenshot পাঠান।"
         )
 
     elif query.data.startswith("approve_"):
@@ -56,16 +64,25 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.message.reply_text("Data পাওয়া যায়নি।")
             return
 
+        sheet.append_row([
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            target_id,
+            data.get("name"),
+            data.get("phone"),
+            data.get("payment_method"),
+            "Approved"
+        ])
+
         data["status"] = "Approved"
 
         await context.bot.send_message(
             target_id,
             "✅ অভিনন্দন!\n\n"
             "আপনার admission complete হয়েছে।\n\n"
-            f"👉 আমাদের premium group link:\n{GROUP_LINK}"
+            f"👉 Premium group link:\n{GROUP_LINK}"
         )
 
-        await query.message.reply_text("✅ Admission approved. User-কে group link পাঠানো হয়েছে।")
+        await query.message.reply_text("✅ Approved. Google Sheet-এ save হয়েছে এবং user-কে group link পাঠানো হয়েছে।")
 
     elif query.data.startswith("reject_"):
         if user_id != ADMIN_ID:
@@ -80,7 +97,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             target_id,
             "❌ দুঃখিত, আপনার admission request reject হয়েছে।\n\n"
-            "Payment info ভুল হলে Help / WhatsApp-এ যোগাযোগ করুন।"
+            "Payment issue থাকলে Help / WhatsApp-এ যোগাযোগ করুন।"
         )
 
         await query.message.reply_text("❌ Request rejected.")
@@ -114,15 +131,6 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
-    elif step == "trxid":
-        user_data[user_id]["trxid"] = text
-        user_data[user_id]["step"] = "screenshot"
-
-        await update.message.reply_text(
-            "📸 এখন payment screenshot পাঠান।\n\n"
-            "Screenshot ছাড়া admission verify করা যাবে না।"
-        )
-
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
 
@@ -142,7 +150,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"👤 Name: {data.get('name')}\n"
         f"📞 Phone: {data.get('phone')}\n"
         f"💳 Payment Method: {data.get('payment_method')}\n"
-        f"🧾 Transaction ID: {data.get('trxid')}\n"
         f"🆔 Telegram ID: {user_id}\n\n"
         "Payment screenshot নিচে forwarded করা হয়েছে।"
     )
