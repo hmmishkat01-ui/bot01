@@ -13,7 +13,11 @@ GROUP_LINK = "https://chat.whatsapp.com/GKpKHEXkzh6CA88k9cjX1f"
 SHEET_ID = "1DnrcPJTNg9qhnBqRKEhbCElP1miIb0Po-AhGA-v6Ayo"
 
 scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-creds = Credentials.from_service_account_file("service_account.json", scopes=scopes)
+import os
+import json
+
+creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
 client = gspread.authorize(creds)
 sheet = client.open_by_key(SHEET_ID).sheet1
 
